@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,14 +30,27 @@
                             <li class="nav-item">
                                 <a class="nav-link active text-font" href="vehicles.php">List</a>
                             </li>
-                            <li class="nav-item">
-                                <a class="nav-link active text-font" href="page.php">Add Vehicle</a>
-                            </li>
+                            <?php if(is_logged_in()) { ?>
+                                <li class="nav-item">
+                                    <a class="nav-link active text-font" href="page.php">Add Vehicle</a>
+                                </li>
+                            <?php } ?>
                             
                         </ul>
                         <form class="d-flex">
-                            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                            <button class="btn btn-outline-info" type="submit">Search</button>
+                            <?php if(is_logged_in()) { ?>
+                                <li class="nav-item">
+                                    <a class="btn btn-danger btn-lg" href="logout.php">Logout<i class="bi bi-box-arrow-right"></i></a>
+                                </li>
+                            <?php } else { ?>
+                                <li class="nav-item">
+                                <a class="nav-link display btn btn-light" href="login.php">Login</a>
+                                </li>
+                                <li></li>
+                                <li class="nav-item">
+                                    <a class="nav-link btn btn-info" href="register.php">Register</a>
+                                </li>
+                            <?php } ?>
                         </form>
                     </div>
                 </div>

@@ -1,5 +1,7 @@
 <?php
-
+    session_start();
+    //get validations file and make sure user is logged in
+    require_once 'validations.php';
     //connect to the database
     require_once 'database.php';
     $conn = db_connect();
@@ -19,8 +21,10 @@
         <th scope="col">Model</th>
         <th scope="col">Year</th>
         <th scope="col">Colour</th>
+        <?php if(is_logged_in()) { ?>
         <th scope="col" class="col-1">Edit</th>
         <th scope="col" class="col-1">Delete</th>
+        <?php } ?>
         </tr>
     </thead>
     <tbody>
@@ -31,8 +35,13 @@
             <td><?php echo $vehicle['carModel']; ?></td>
             <td><?php echo $vehicle['carYear']; ?></td>
             <td><?php echo $vehicle['colour']; ?></td>
-            <td><a href="vehicle-edit.php?carNumber= <?php echo $vehicle['carNumber'];?>" class="btn btn-secondary">Edit<i class="bi bi-pencil-square"></i></a></td>
-            <td><a href="vehicle-delete.php?carNumber= <?php echo $vehicle['carNumber'];?>" class="btn btn-warning">Delete<i class="bi bi-trash2-fill"></i></a></td>
+
+            <?php if(is_logged_in()) { ?>
+
+                <td><a href="vehicle-edit.php?carNumber= <?php echo $vehicle['carNumber'];?>" class="btn btn-secondary">Edit<i class="bi bi-pencil-square"></i></a></td>
+                <td><a href="vehicle-delete.php?carNumber= <?php echo $vehicle['carNumber'];?>" class="btn btn-warning">Delete<i class="bi bi-trash2-fill"></i></a></td>
+
+            <?php } ?>
             </tr>
         <?php } ?>
     </tbody>

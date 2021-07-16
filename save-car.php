@@ -1,5 +1,12 @@
 <?php
 
+
+session_start();
+
+//get validations file and make sure user is logged in
+require_once 'validations.php';
+require_login();
+
 try {
 
     //make input into variables and sanitize to desired input
