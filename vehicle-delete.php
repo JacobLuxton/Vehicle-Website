@@ -28,6 +28,7 @@
             $colour = $vehicle['colour'];
 
             // attach top.php
+            $page_title = "Delete Vehicle";
             include_once 'shared/top.php';
             // add HTML to delete page
         } catch (Exception $e) {

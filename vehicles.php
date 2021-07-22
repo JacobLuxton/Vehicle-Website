@@ -6,6 +6,7 @@
     require_once 'database.php';
     $conn = db_connect();
 
+    $page_title = "Vehicle List";
     include_once 'shared/top.php';
 
     $sql = "SELECT * FROM Vehicles";

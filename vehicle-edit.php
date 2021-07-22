@@ -9,7 +9,10 @@
     require_once 'database.php';
     $conn = db_connect();
 
+    $page_title = "Edit Vehicle";
     require_once 'shared/top.php';
+
+    $errors = [];
 
     if($_SERVER['REQUEST_METHOD'] == 'POST') {
 
@@ -22,22 +25,33 @@
             $colour = trim(filter_var($_POST['colour'], FILTER_SANITIZE_STRING));
             $id = trim(filter_var($_POST['carNumber'], FILTER_SANITIZE_URL));
 
-            // create update statement
-            $sql = "UPDATE Vehicles SET carMake=:make,";
-            $sql .= "carModel=:model, carYear=:year, colour=:colour ";
-            $sql .= "WHERE carNumber=:id";
+            $edit_vehicle = [];
+            $edit_vehicle['make'] = $make;
+            $edit_vehicle['model'] = $model;
+            $edit_vehicle['year'] = $year;
+            $edit_vehicle['colour'] = $colour;
 
-            // bind each column of record
-            $cmd = $conn->prepare($sql);
-            $cmd -> bindParam(':make', $make, PDO::PARAM_STR, 15);
-            $cmd -> bindParam(':model', $model, PDO::PARAM_STR, 15);
-            $cmd -> bindParam(':year', $year, PDO::PARAM_INT);
-            $cmd -> bindParam(':colour', $colour, PDO::PARAM_STR, 10);
-            $cmd -> bindParam(':id', $id, PDO::PARAM_STR, 10);
+            $errors = validate_vehicle($edit_vehicle);
 
-            $cmd -> execute();
+            if(empty($errors))
+            {
+                    // create update statement
+                $sql = "UPDATE Vehicles SET carMake=:make,";
+                $sql .= "carModel=:model, carYear=:year, colour=:colour ";
+                $sql .= "WHERE carNumber=:id";
 
-            header("Location: vehicles.php");
+                // bind each column of record
+                $cmd = $conn->prepare($sql);
+                $cmd -> bindParam(':make', $make, PDO::PARAM_STR, 15);
+                $cmd -> bindParam(':model', $model, PDO::PARAM_STR, 15);
+                $cmd -> bindParam(':year', $year, PDO::PARAM_INT);
+                $cmd -> bindParam(':colour', $colour, PDO::PARAM_STR, 10);
+                $cmd -> bindParam(':id', $id, PDO::PARAM_STR, 10);
+
+                $cmd -> execute();
+
+                header("Location: vehicles.php");
+            }
         } catch (Exception $e) {
             header("location: error.php");
         }
@@ -70,20 +84,23 @@
         <form class="justify-content-center text-font fs-3" action="vehicle-edit.php" method="POST" novalidate>
             <div class="mb-2 text-center">
                 <label for="make">Make</label>
-                <div>
-                    <input required type="text" name="make" value="<?php echo $make ?>"></input>
+                <div class="container" style="width: 50%;">
+                    <input required class="<?= (isset($errors['make']) ? 'is-invalid ' : ''); ?> form-control form-control-lg" type="text" name="make" value="<?php echo $make ?>"></input>
+                    <p class="text-danger"><?= $errors['make'] ?? ''; ?></p>
                 </div>
             </div>
             <div class="mb-2 text-center">
                 <label for="model">Model</label>
-                <div>
-                    <input required type="text" name="model" value="<?php echo $model ?>"></input>
+                <div class="container" style="width: 50%;">
+                    <input required class="<?= (isset($errors['model']) ? 'is-invalid ' : ''); ?> form-control" type="text" name="model" value="<?php echo $model ?>"></input>
+                    <p class="text-danger"><?= $errors['model'] ?? ''; ?></p>
                 </div>
             </div>
             <div class="mb-3 text-center">
                 <label for="year">Year</label>
-                <div>
-                    <input inputmode="numeric" pattern="[0-9]{4}" type="text" name="year" value="<?php echo $year ?>"></input>
+                <div class="container" style="width: 50%;">
+                    <input inputmode="numeric" class="<?= (isset($errors['year']) ? 'is-invalid ' : ''); ?> form-control" pattern="[0-9]{4}" type="text" name="year" value="<?php echo $year ?>"></input>
+                    <p class="text-danger"><?= $errors['year'] ?? ''; ?></p>
                 </div>
             </div>
             <div class="mb-2 text-center">

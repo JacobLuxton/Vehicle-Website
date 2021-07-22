@@ -1,5 +1,32 @@
 <?php
 
+
+    function validate_vehicle($vehicle)
+    {
+        $errors = [];
+
+                //check for blanks for all required fields
+        if(empty($vehicle['make'])) {
+            $errors['make'] = "Please enter a valid make of car <br>";
+            
+        }
+        if(empty($vehicle['model'])) {
+            $errors['model'] = "Please enter a valid model of car <br>";
+            
+        }
+        //attach file
+        require 'db.php';
+        // create regular expression for year field
+        $year_regex = "/[0-9]{4}/";
+        $year = $vehicle['year'];
+
+        if($year < 0 || strlen($year) != 4 || !preg_match($year_regex, $year)) {
+            $errors['year'] =  "Please enter a valid year <br>";
+            
+        }
+
+        return $errors;
+    }
     function is_logged_in() {
         return isset($_SESSION['user_id']);
     }

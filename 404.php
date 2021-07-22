@@ -9,6 +9,7 @@
     require_once 'database.php';
     $conn = db_connect();
 
+    $page_title = "404";
     require_once 'shared/top.php';
 ?>
 

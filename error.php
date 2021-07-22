@@ -9,6 +9,7 @@ require_login();
 require_once 'database.php';
 $conn = db_connect();
 
+$page_title = "Error";
 require_once 'shared/top.php';
 
 ?>
