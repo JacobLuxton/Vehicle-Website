@@ -22,20 +22,41 @@
 
         //Associative array to hold values of each field of what user has input
         $new_vehicle = [];
-        $new_vehcile['make'] = $make;
-        $new_vehcile['model'] = $model;
-        $new_vehcile['year'] = $year;
-        $new_vehcile['colour'] = $colour;
+        $new_vehicle['make'] = $make;
+        $new_vehicle['model'] = $model;
+        $new_vehicle['year'] = $year;
+        $new_vehicle['colour'] = $colour;
+
+         //get variables for picture
+        $name = $_FILES['pic']['name'];
+        $tmp_name = $_FILES['pic']['tmp_name'];
+        if($tmp_name != null)
+        {
+            $type = mime_content_type($tmp_name);
+            $new_vehicle['type'] = $type;
+        }
+        $size = $_FILES['pic']['size']; 
+
+        $new_vehicle['name'] = $name;
+        $new_vehicle['tmp_name'] = $tmp_name;
+        $new_vehicle['size'] = $size;
 
         //use validate function to fill array erros if there are errors
-        $errors = validate_vehicle($new_vehcile);
+        $errors = validate_vehicle($new_vehicle);
 
         if(empty($errors))
         {
+            //if no errors in 'pic' and type is set
+            //move photo to uploads and set name of photo in db
+            if(empty($errors['pic']) && isset($type))
+            {
+                move_uploaded_file($tmp_name, "uploads/" . substr(session_id(), 5, 10) . $name);
+                $pic_name = substr(session_id(), 5, 10) . $name;
+            }
             try {
 
                 //start sql insert command
-                $sql = "INSERT INTO Vehicles (carMake, carModel, carYear, colour) VALUES (:make, :model, :year, :colour)";
+                $sql = "INSERT INTO Vehicles (carMake, carModel, carYear, colour, photo) VALUES (:make, :model, :year, :colour, :photo)";
         
                 //command to fill parameters with the form values
                 $cmd = $conn->prepare($sql);
@@ -43,10 +64,13 @@
                 $cmd -> bindParam(':model', $model, PDO::PARAM_STR, 15);
                 $cmd -> bindParam(':year', $year, PDO::PARAM_INT);
                 $cmd -> bindParam(':colour', $colour, PDO::PARAM_STR, 10);
-        
+                $cmd -> bindParam(':photo', $pic_name, PDO::PARAM_STR, 100);
+
                 $cmd -> execute();
 
-                header("Location: front-page.php");
+                $name = $make . ' ' . $model;
+                
+                header("Location: vehicles.php?t=0&msg=$name");
             } catch (Exception $e) {
                 header("location: error.php");
             }
@@ -65,7 +89,7 @@
 <body>
     <h1 class="text-center text-font">Add a Vehicle</h1>
     <div class="container">
-        <form class="justify-content-center text-font fs-3" method="POST" novalidate>
+        <form class="justify-content-center text-font fs-3" method="POST" novalidate enctype="multipart/form-data">
             <div class="mb-2 text-center">
                 <label for="make">Make</label>
                 <div class="container" style="width: 50%;">
@@ -80,7 +104,7 @@
                     <p class="text-danger"><?= $errors['model'] ?? ''; ?></p>
                 </div>
             </div>
-            <div class="mb-3 text-center">
+            <div class="mb-5 text-center">
                 <label for="year">Year</label>
                 <div class="container" style="width: 50%;">
                     <input inputmode="numeric" class="<?= (isset($errors['year']) ? 'is-invalid ' : ''); ?> form-control" pattern="[0-9]{4}" type="text" name="year" value="<?= $year ?? ''; ?>"></input>
@@ -89,7 +113,7 @@
             </div>
             <div class="mb-2 text-center">
                 <div class>
-                    <label class="me-5" for="colour" class="<?= (isset($errors['colour']) ? 'is-invalid ' : ''); ?> form-control" value="<?= $colour ?? ''; ?>">Colour</label>
+                    <label class="mb-5" for="colour" class="<?= (isset($errors['colour']) ? 'is-invalid ' : ''); ?> form-control" value="<?= $colour ?? ''; ?>">Colour</label>
                     <select name="colour">
                         <?php
                             $sql = "SELECT Colour FROM Colours ORDER BY Colour";
@@ -101,13 +125,37 @@
                         ?>
                     </select>
                 </div>
-                <div class="mt-5 justify-content-center">
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-12 col-sm-3 mb-5">
+                    <img id="cover" src="https://dummyimage.com/300x225" class="card-img-top" alt="game cover">
+                    <div class="card-body">
+                        <input id="choosefile" type="file" name="pic" class="form-control">
+                    </div>
+                    <p class="px-3 pb-2 text-danger"><?= $errors['pic'] ?? ''; ?></p>
+                </div>
+            </div>
+
+                <div class="mt-5 text-center">
                     <button class="btn btn-info fs-3">Submit</button>
                 </div>
             </div>
         </form>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 
+    <script>
+        function handlefileSelect(evt) {
+            const reader = new FileReader();
+
+            reader.addEventListener('load', (e) => {
+                cover.src = e.target.result;
+                console.log(e.target.result);
+            })
+            reader.readAsDataURL(evt.target.files[0]);
+        }
+        choosefile.addEventListener('change', handlefileSelect) 
+    </script>
     <?php
     include_once 'shared/footer.php';
     ?>

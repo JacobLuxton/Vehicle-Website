@@ -11,10 +11,38 @@
 
     $sql = "SELECT * FROM Vehicles";
     $vehicles = db_queryAll($sql, $conn);
+
+    $word_list = [];
+
+    if(!empty($keywords)) 
+    {
+
+    $sql .= " WHERE ";
+
+    //split the multiple keywords into an array using php explode
+    $word_list = explode(" ", trim($keywords));
+
+    //loop through word list array and add each word to where clause
+    foreach($word_list as $key => $word)
+    {
+        $word_list[$key] = "%" . $word . "%";
+        
+        //but for the first word, omit the word OR
+        if($key == 0)
+        {
+        $sql .= " carMake LIKE ?";
+        } else
+        {
+            $sql .= "OR carMake LIKE ?";
+        }
+    }
+    }
+
+    $vehicles = db_queryAll($sql, $conn, $word_list);
 ?>
 
 <div class="container">
-    <table class="table table-dark table-bordered border-info fs-4">
+    <table class=" sortable table table-dark table-bordered border-info fs-4">
     <thead class="text-font">
         <tr>
         <th scope="col">#</th>
@@ -23,8 +51,8 @@
         <th scope="col">Year</th>
         <th scope="col">Colour</th>
         <?php if(is_logged_in()) { ?>
-        <th scope="col" class="col-1">Edit</th>
-        <th scope="col" class="col-1">Delete</th>
+        <th scope="col" class="col-1 sorttable_nosort">Edit</th>
+        <th scope="col" class="col-1 sorttable_nosort">Delete</th>
         <?php } ?>
         </tr>
     </thead>
@@ -50,6 +78,9 @@
 </div>
 <?php
 
+$t = filter_var($_GET['t'] ?? '', FILTER_SANITIZE_STRING);
+$msg = filter_var($_GET['msg'] ?? '', FILTER_SANITIZE_STRING);
+display_toast($t, $msg);
 include_once 'shared/footer.php';
 
 ?>

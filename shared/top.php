@@ -1,4 +1,10 @@
+<?php
+$keywords = '';
+if(isset($_GET['K'])) {
+    $keywords = filter_var($_GET['K'], FILTER_SANITIZE_STRING);
 
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -41,6 +47,10 @@
                             <?php } ?>
                             
                         </ul>
+                        <form class="d-flex pe-5" action="vehicles.php" method="GET">
+                            <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search" name="K" value="<?= $keywords ?>">
+                            <button class="btn btn-outline-success" type="submit">Search</button>
+                        </form>
                         <form class="d-flex">
                             <?php if(is_logged_in()) { ?>
                                 <div class="dropdown">

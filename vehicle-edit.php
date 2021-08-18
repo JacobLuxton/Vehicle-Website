@@ -31,13 +31,44 @@
             $edit_vehicle['year'] = $year;
             $edit_vehicle['colour'] = $colour;
 
+            //get variables for picture
+            $name = $_FILES['pic']['name'];
+            $tmp_name = $_FILES['pic']['tmp_name'];
+            if($tmp_name != null)
+            {
+                $type = mime_content_type($tmp_name);
+                $edit_vehicle['type'] = $type;
+            }
+            $size = $_FILES['pic']['size']; 
+
+            $edit_vehicle['name'] = $name;
+            $edit_vehicle['tmp_name'] = $tmp_name;
+            $edit_vehicle['size'] = $size;
+
             $errors = validate_vehicle($edit_vehicle);
 
             if(empty($errors))
             {
+
+                //if errors pic is empty and type has been set 
+                //move file to uploads and create name for database
+                if(empty($errors['pic']) && isset($type))
+                {
+                    move_uploaded_file($tmp_name, "uploads/" . substr(session_id(), 5, 10) . $name);
+                    $pic_name = substr(session_id(), 5, 10) . $name;
+                }
+                //otherwise find photo that is set in database and keep it as that photo
+                //if there is no photo then it will stay set as nothing
+                else
+                {
+                    $sql = "SELECT * FROM Vehicles WHERE carNumber=" . $id;
+                    $game = db_queryONE($sql, $conn);
+                    $pic_name = $game['photo'];
+                }
+
                     // create update statement
                 $sql = "UPDATE Vehicles SET carMake=:make,";
-                $sql .= "carModel=:model, carYear=:year, colour=:colour ";
+                $sql .= "carModel=:model, carYear=:year, colour=:colour ,photo=:photo ";
                 $sql .= "WHERE carNumber=:id";
 
                 // bind each column of record
@@ -47,10 +78,12 @@
                 $cmd -> bindParam(':year', $year, PDO::PARAM_INT);
                 $cmd -> bindParam(':colour', $colour, PDO::PARAM_STR, 10);
                 $cmd -> bindParam(':id', $id, PDO::PARAM_STR, 10);
+                $cmd -> bindParam(':photo', $pic_name, PDO::PARAM_STR, 100);
 
                 $cmd -> execute();
 
-                header("Location: vehicles.php");
+                $name = $make . ' ' . $model;
+                header("Location: vehicles.php?t=2&msg=$name");
             }
         } catch (Exception $e) {
             header("location: error.php");
@@ -72,6 +105,8 @@
             $model = $vehicle['carModel'];
             $year = $vehicle['carYear'];
             $colour = $vehicle['colour'];
+            $pic = $vehicle['photo'];
+
         } catch (Exception $e) {
             header("location: error.php");
         }
@@ -81,7 +116,7 @@
 
 <h1 class="text-center text-font">Edit Vehicle</h1>
     <div class="container">
-        <form class="justify-content-center text-font fs-3" action="vehicle-edit.php" method="POST" novalidate>
+        <form class="justify-content-center text-font fs-3" action="vehicle-edit.php" method="POST" novalidate enctype="multipart/form-data">
             <div class="mb-2 text-center">
                 <label for="make">Make</label>
                 <div class="container" style="width: 50%;">
@@ -96,7 +131,7 @@
                     <p class="text-danger"><?= $errors['model'] ?? ''; ?></p>
                 </div>
             </div>
-            <div class="mb-3 text-center">
+            <div class="mb-5 text-center">
                 <label for="year">Year</label>
                 <div class="container" style="width: 50%;">
                     <input inputmode="numeric" class="<?= (isset($errors['year']) ? 'is-invalid ' : ''); ?> form-control" pattern="[0-9]{4}" type="text" name="year" value="<?php echo $year ?>"></input>
@@ -105,7 +140,7 @@
             </div>
             <div class="mb-2 text-center">
                 <div class>
-                    <label class="me-5" for="colour">Colour</label>
+                    <label class="mb-5" for="colour">Colour</label>
                     <select name="colour">
                         <?php
                             $sql = "SELECT Colour FROM Colours ORDER BY Colour";
@@ -117,14 +152,37 @@
                         ?>
                     </select>
                 </div>
+                <div class="row justify-content-center">
+                    <div class="col-12 col-sm-3 mb-5">
+                        <img id="cover" src="<?= isset($pic) ? 'uploads/' . $pic : 'https://dummyimage.com/300x225'; ?>" class="card-img-top" alt="game cover">
+                        <div class="card-body">
+                            <input id="choosefile" type="file" name="pic" class="form-control">
+                        </div>
+                        <p class="px-3 pb-2 text-danger"><?= $errors['pic'] ?? ''; ?></p>
+                    </div>
+                </div>
+
                 <div class="mt-5 justify-content-center">
                 <input readonly type="hidden" name="carNumber" value="<?php echo $id; ?>">
-                    <button class="btn btn-info fs-3">Submit</button>
+                    <button class="btn btn-info fs-3">Update Vehicle</button>
                 </div>
             </div>
         </form>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 
+    <script>
+        function handlefileSelect(evt) {
+            const reader = new FileReader();
+
+            reader.addEventListener('load', (e) => {
+                cover.src = e.target.result;
+                console.log(e.target.result);
+            })
+            reader.readAsDataURL(evt.target.files[0]);
+        }
+        choosefile.addEventListener('change', handlefileSelect) 
+    </script>
 <?php
 
 include_once 'shared/footer.php';

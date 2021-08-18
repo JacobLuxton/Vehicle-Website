@@ -3,12 +3,12 @@
 require_once 'db_cred.php';
 
 // create function to return 
-function db_queryAll($sql, $conn) {
+function db_queryAll($sql, $conn, $word_list = []) {
     try{
 
         // run the query and store the results
         $cmd = $conn->prepare($sql);
-        $cmd -> execute();
+        $cmd -> execute($word_list);
         $vehicle = $cmd->fetchAll();
         return $vehicle;
     } catch (Exception $e) {

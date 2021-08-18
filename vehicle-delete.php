@@ -86,8 +86,9 @@
             $cmd = $conn->prepare($sql);
             $cmd -> execute();
 
+            $name = $_POST['make'] . ' ' . $_POST['model'];
             // return to vehicles page
-            header("Location: vehicles.php");
+            header("Location: vehicles.php?t=1&msg=$name");
         } catch (Exception $e) {
             header("location: error.php");
         }

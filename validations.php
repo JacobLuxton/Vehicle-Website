@@ -25,6 +25,18 @@
             
         }
 
+        if($vehicle['size'] > 1000000) {
+            $errors['pic'] = "Image must be less than 1MB";
+        }
+        //if tmp_name is set (make sure that there is a 'type' to reference)
+        if($vehicle['tmp_name'] != null)
+        {
+            //and type is set, and type does not match jpeg or png, show error
+            if(!($vehicle['type'] == 'image/jpeg' || $vehicle['type'] == 'image/png')) {
+                $errors['pic'] = "Image format must be .jpg or .png";
+            }
+        }
+
         return $errors;
     }
     function is_logged_in() {
@@ -81,6 +93,41 @@
         }
 
         return $errors;
+    }
+
+    function display_toast($t, $msg) {
+
+        if(!$t && !$msg) {
+            return;
+        }
+        $msgs = [];
+        $msgs['0'] = "Successfully Added";
+        $msgs['1'] = "Successfully Deleted";
+        $msgs['2'] = "Successfully Edited";
+        
+        echo <<<EOL
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="liveToast" class="toast hide" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header bg-dark text-light">
+            <strong class="me-auto">$msgs[$t]</strong>
+            <small>now</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+            $msg
+            </div>
+        </div>
+        </div>
+        <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+            var toastList = toastElList.map(function (toastEl) {
+            return new bootstrap.Toast(toastEl)
+            });
+        toastList.forEach(toast => toast.show());
+        });
+        </script>
+        EOL;
     }
 
 ?>
